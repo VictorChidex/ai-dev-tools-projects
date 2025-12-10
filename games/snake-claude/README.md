@@ -18,4 +18,4 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## Adding published Claude code for with WASD control system and two modes: Wall and Pass-through
 
-[Published Claude code](https://claude.ai/public/artifacts/a3673138-0253-4b1b-99b3-05a432dd5cd5)
+Here is the Claude punlished code of the snake game [Published Claude code](https://claude.ai/public/artifacts/a3673138-0253-4b1b-99b3-05a432dd5cd5)
