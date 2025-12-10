@@ -16,6 +16,6 @@ The React Compiler is not enabled on this template because of its impact on dev 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 
 
-# Adding published Claude code for with WASD control system and two modes: Wall and Pass-through
+## Adding published Claude code for with WASD control system and two modes: Wall and Pass-through
 
 [Published Claude code](https://claude.ai/public/artifacts/a3673138-0253-4b1b-99b3-05a432dd5cd5)
