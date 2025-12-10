@@ -13,6 +13,7 @@ export default function SnakeGame() {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [wallMode, setWallMode] = useState(true);
 
   function generateFood(currentSnake) {
     let newFood;
@@ -39,12 +40,21 @@ export default function SnakeGame() {
 
     setSnake(prevSnake => {
       const head = prevSnake[0];
-      const newHead = [head[0] + direction.x, head[1] + direction.y];
+      let newHead = [head[0] + direction.x, head[1] + direction.y];
 
-      // Check wall collision
-      if (newHead[0] < 0 || newHead[0] >= GRID_SIZE || newHead[1] < 0 || newHead[1] >= GRID_SIZE) {
-        setGameOver(true);
-        return prevSnake;
+      // Handle wall collision based on mode
+      if (wallMode) {
+        // Wall mode: Game over on collision
+        if (newHead[0] < 0 || newHead[0] >= GRID_SIZE || newHead[1] < 0 || newHead[1] >= GRID_SIZE) {
+          setGameOver(true);
+          return prevSnake;
+        }
+      } else {
+        // Pass-through mode: Wrap around edges
+        if (newHead[0] < 0) newHead[0] = GRID_SIZE - 1;
+        if (newHead[0] >= GRID_SIZE) newHead[0] = 0;
+        if (newHead[1] < 0) newHead[1] = GRID_SIZE - 1;
+        if (newHead[1] >= GRID_SIZE) newHead[1] = 0;
       }
 
       // Check self collision
@@ -65,7 +75,7 @@ export default function SnakeGame() {
       newSnake.pop();
       return newSnake;
     });
-  }, [direction, food, gameOver, isPaused]);
+  }, [direction, food, gameOver, isPaused, wallMode]);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -77,20 +87,24 @@ export default function SnakeGame() {
 
       if (gameOver || isPaused) return;
 
-      switch (e.key) {
-        case 'ArrowUp':
+      switch (e.key.toLowerCase()) {
+        case 'arrowup':
+        case 'w':
           e.preventDefault();
           setDirection(prev => prev.y !== 1 ? { x: 0, y: -1 } : prev);
           break;
-        case 'ArrowDown':
+        case 'arrowdown':
+        case 's':
           e.preventDefault();
           setDirection(prev => prev.y !== -1 ? { x: 0, y: 1 } : prev);
           break;
-        case 'ArrowLeft':
+        case 'arrowleft':
+        case 'a':
           e.preventDefault();
           setDirection(prev => prev.x !== 1 ? { x: -1, y: 0 } : prev);
           break;
-        case 'ArrowRight':
+        case 'arrowright':
+        case 'd':
           e.preventDefault();
           setDirection(prev => prev.x !== -1 ? { x: 1, y: 0 } : prev);
           break;
@@ -112,6 +126,30 @@ export default function SnakeGame() {
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-green-800">Snake Game</h1>
           <div className="text-2xl font-bold text-green-600">Score: {score}</div>
+        </div>
+
+        <div className="mb-4 flex items-center justify-center gap-4">
+          <span className="font-semibold text-gray-700">Mode:</span>
+          <button
+            onClick={() => setWallMode(true)}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              wallMode 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Walls
+          </button>
+          <button
+            onClick={() => setWallMode(false)}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              !wallMode 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Pass-Through
+          </button>
         </div>
 
         <div 
@@ -167,8 +205,11 @@ export default function SnakeGame() {
         </div>
 
         <div className="mt-4 text-center text-gray-700">
-          <p className="mb-2">Use arrow keys to control the snake</p>
-          <p className="text-sm">Press SPACE to pause/resume</p>
+          <p className="mb-2">Use <strong>Arrow Keys</strong> or <strong>WASD</strong> to control the snake</p>
+          <p className="text-sm">Press <strong>SPACE</strong> to pause/resume</p>
+          <p className="text-sm mt-2">
+            <strong>Walls:</strong> Game ends at borders | <strong>Pass-Through:</strong> Wrap around edges
+          </p>
         </div>
       </div>
     </div>
