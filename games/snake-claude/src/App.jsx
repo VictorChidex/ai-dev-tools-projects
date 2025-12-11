@@ -91,7 +91,7 @@ export default function SnakeGame() {
 
       // Check food collision
       if (checkFoodCollision(newHead, food)) {
-        setScore(prev => prev + 10);
+        setScore(prev => prev + 5);
         setFood(generateFood(newSnake));
         return newSnake;
       }
