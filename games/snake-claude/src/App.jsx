@@ -15,6 +15,7 @@ export default function SnakeGame() {
   const [isPaused, setIsPaused] = useState(false);
   const [wallMode, setWallMode] = useState(true);
 
+  // Utility function: Generate food
   function generateFood(currentSnake) {
     let newFood;
     do {
@@ -26,15 +27,44 @@ export default function SnakeGame() {
     return newFood;
   }
 
-  const resetGame = () => {
+  // Utility function: Handle wall collision
+  function handleWallCollision(newHead) {
+    if (wallMode) {
+      // Wall mode: Game over on collision
+      if (newHead[0] < 0 || newHead[0] >= GRID_SIZE || newHead[1] < 0 || newHead[1] >= GRID_SIZE) {
+        return { collision: true, head: newHead };
+      }
+    } else {
+      // Pass-through mode: Wrap around edges
+      if (newHead[0] < 0) newHead[0] = GRID_SIZE - 1;
+      if (newHead[0] >= GRID_SIZE) newHead[0] = 0;
+      if (newHead[1] < 0) newHead[1] = GRID_SIZE - 1;
+      if (newHead[1] >= GRID_SIZE) newHead[1] = 0;
+    }
+    return { collision: false, head: newHead };
+  }
+
+  // Utility function: Check self collision
+  function checkSelfCollision(newHead, snakeBody) {
+    return snakeBody.some(segment => segment[0] === newHead[0] && segment[1] === newHead[1]);
+  }
+
+  // Utility function: Check food collision
+  function checkFoodCollision(newHead, foodPos) {
+    return newHead[0] === foodPos[0] && newHead[1] === foodPos[1];
+  }
+
+  // Game logic: Reset game
+  const resetGame = useCallback(() => {
     setSnake(INITIAL_SNAKE);
     setFood(generateFood(INITIAL_SNAKE));
     setDirection(INITIAL_DIRECTION);
     setGameOver(false);
     setScore(0);
     setIsPaused(false);
-  };
+  }, []);
 
+  // Game logic: Move snake
   const moveSnake = useCallback(() => {
     if (gameOver || isPaused) return;
 
@@ -42,23 +72,17 @@ export default function SnakeGame() {
       const head = prevSnake[0];
       let newHead = [head[0] + direction.x, head[1] + direction.y];
 
-      // Handle wall collision based on mode
-      if (wallMode) {
-        // Wall mode: Game over on collision
-        if (newHead[0] < 0 || newHead[0] >= GRID_SIZE || newHead[1] < 0 || newHead[1] >= GRID_SIZE) {
-          setGameOver(true);
-          return prevSnake;
-        }
-      } else {
-        // Pass-through mode: Wrap around edges
-        if (newHead[0] < 0) newHead[0] = GRID_SIZE - 1;
-        if (newHead[0] >= GRID_SIZE) newHead[0] = 0;
-        if (newHead[1] < 0) newHead[1] = GRID_SIZE - 1;
-        if (newHead[1] >= GRID_SIZE) newHead[1] = 0;
+      // Handle wall collision
+      const { collision: wallCollision, head: adjustedHead } = handleWallCollision(newHead);
+      newHead = adjustedHead;
+
+      if (wallCollision) {
+        setGameOver(true);
+        return prevSnake;
       }
 
       // Check self collision
-      if (prevSnake.some(segment => segment[0] === newHead[0] && segment[1] === newHead[1])) {
+      if (checkSelfCollision(newHead, prevSnake)) {
         setGameOver(true);
         return prevSnake;
       }
@@ -66,7 +90,7 @@ export default function SnakeGame() {
       const newSnake = [newHead, ...prevSnake];
 
       // Check food collision
-      if (newHead[0] === food[0] && newHead[1] === food[1]) {
+      if (checkFoodCollision(newHead, food)) {
         setScore(prev => prev + 10);
         setFood(generateFood(newSnake));
         return newSnake;
@@ -77,6 +101,7 @@ export default function SnakeGame() {
     });
   }, [direction, food, gameOver, isPaused, wallMode]);
 
+  // Event handlers: Keyboard controls
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.key === ' ') {
@@ -115,11 +140,13 @@ export default function SnakeGame() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [gameOver, isPaused]);
 
+  // Effect: Game loop
   useEffect(() => {
     const interval = setInterval(moveSnake, GAME_SPEED);
     return () => clearInterval(interval);
   }, [moveSnake]);
 
+  // Render
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-green-900 to-green-700 p-8">
       <div className="bg-white rounded-lg shadow-2xl p-8">
